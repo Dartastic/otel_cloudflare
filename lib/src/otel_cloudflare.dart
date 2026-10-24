@@ -1,17 +1,20 @@
-// Licensed under the Dartastic Pro Software License Agreement.
+// Licensed under the Apache License, Version 2.0
 // Copyright 2025-2026 Mindful Software LLC d/b/a Dartastic.io, All rights reserved.
 
-import 'package:dartastic_opentelemetry/dartastic_opentelemetry.dart';
+import 'package:dartastic_opentelemetry_api/dartastic_opentelemetry_api.dart';
 
 import 'otel_cloudflare_suppression.dart';
 
 const _tracerName = 'dartastic_otel_libs_cloudflare';
 
-Tracer _tracer() => OTel.tracerProvider().getTracer(_tracerName);
+APITracer _tracer() => OTelAPI.tracerProvider().getTracer(_tracerName);
 
 /// Pair returned from `tracedCloudflareR2*` callbacks.
 class CloudflareR2CallResult<T> {
+  /// Creates a call result.
   const CloudflareR2CallResult({required this.value, this.bytes, this.etag});
+
+  /// The value returned to the caller.
   final T value;
   final int? bytes;
   final String? etag;
@@ -46,7 +49,7 @@ Future<T> tracedCloudflareKv<T>({
   final span = _tracer().startSpan(
     'kv $operation $namespace',
     kind: SpanKind.client,
-    attributes: OTel.attributesFromMap({
+    attributes: OTelAPI.attributesFromMap({
       'cloudflare.service': 'kv',
       'cloudflare.kv.namespace': namespace,
       'cloudflare.kv.key': kvKey,
@@ -56,9 +59,9 @@ Future<T> tracedCloudflareKv<T>({
   try {
     return await invoke();
   } catch (e, st) {
-    span.addAttributes(OTel.attributes([
-      OTel.attributeString(
-        ErrorResource.errorType.key,
+    span.addAttributes(OTelAPI.attributes([
+      OTelAPI.attributeString(
+        ErrorAttributes.errorType.key,
         e.runtimeType.toString(),
       ),
     ]));
@@ -83,7 +86,7 @@ Future<T> tracedCloudflareWorkerRpc<T>({
   final span = _tracer().startSpan(
     'worker $binding.$method',
     kind: SpanKind.client,
-    attributes: OTel.attributesFromMap({
+    attributes: OTelAPI.attributesFromMap({
       'cloudflare.service': 'workers',
       'cloudflare.worker.binding': binding,
       'cloudflare.worker.method': method,
@@ -92,9 +95,9 @@ Future<T> tracedCloudflareWorkerRpc<T>({
   try {
     return await invoke();
   } catch (e, st) {
-    span.addAttributes(OTel.attributes([
-      OTel.attributeString(
-        ErrorResource.errorType.key,
+    span.addAttributes(OTelAPI.attributes([
+      OTelAPI.attributeString(
+        ErrorAttributes.errorType.key,
         e.runtimeType.toString(),
       ),
     ]));
@@ -119,7 +122,7 @@ Future<T> _runR2<T>({
   final span = _tracer().startSpan(
     'r2 $operation $bucket',
     kind: SpanKind.client,
-    attributes: OTel.attributesFromMap({
+    attributes: OTelAPI.attributesFromMap({
       'cloudflare.service': 'r2',
       'cloudflare.r2.bucket': bucket,
       'cloudflare.r2.object.key': objectKey,
@@ -130,17 +133,17 @@ Future<T> _runR2<T>({
     final r = await invoke();
     final extra = <Attribute<Object>>[];
     if (r.bytes != null) {
-      extra.add(OTel.attributeInt('cloudflare.r2.object.size', r.bytes!));
+      extra.add(OTelAPI.attributeInt('cloudflare.r2.object.size', r.bytes!));
     }
     if (r.etag != null) {
-      extra.add(OTel.attributeString('cloudflare.r2.object.etag', r.etag!));
+      extra.add(OTelAPI.attributeString('cloudflare.r2.object.etag', r.etag!));
     }
-    if (extra.isNotEmpty) span.addAttributes(OTel.attributes(extra));
+    if (extra.isNotEmpty) span.addAttributes(OTelAPI.attributes(extra));
     return r.value;
   } catch (e, st) {
-    span.addAttributes(OTel.attributes([
-      OTel.attributeString(
-        ErrorResource.errorType.key,
+    span.addAttributes(OTelAPI.attributes([
+      OTelAPI.attributeString(
+        ErrorAttributes.errorType.key,
         e.runtimeType.toString(),
       ),
     ]));
