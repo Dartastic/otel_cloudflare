@@ -2,7 +2,7 @@ name: otel_cloudflare
 description: >-
   OpenTelemetry instrumentation for cloudflare by Dartastic.io. Adds standard
   OpenTelemetry observability to applications that use cloudflare.
-version: 0.1.0-wip
+version: 0.1.0
 repository: https://github.com/dartastic/otel_cloudflare
 homepage: https://dartastic.io
 
